@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 import psycopg2
 from psycopg2.extras import DictCursor
 import random
 
 app = Flask(__name__)
+CORS(app, resources={r'/*', { "origins": ["https://kanji-cloud.netlify.app/", "http://localhost/"] }})
 
 CANVAS_SIZE = (400, 1200)
 PADDING = 40
