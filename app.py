@@ -6,7 +6,9 @@ from psycopg2.extras import DictCursor
 import random
 
 app = Flask(__name__)
-CORS(app, resources={r'/*', { "origins": ["https://kanji-cloud.netlify.app/", "http://localhost/"] }})
+CORS(app, resources={r"/*": { "origins": ["https://kanji-cloud.netlify.app", "http://localhost:8080"] }})
+
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 CANVAS_SIZE = (400, 1200)
 PADDING = 40
