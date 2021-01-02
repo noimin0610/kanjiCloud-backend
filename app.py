@@ -53,12 +53,25 @@ def get_all_votes():
     return votes_list
 
 
+@app.route('/count', methods=['GET'])
+def get_count():
+    with psycopg2.connect(os.environ.get('DATABASE_URL')) as conn:
+        with conn.cursor(cursor_factory=DictCursor) as cur:
+            cur.execute("SELECT SUM(count) AS count FROM votes")
+            count = cur.fetchone()["count"]
+    return jsonify({
+        "message": "OK"
+        ,"count": count
+    })
+
+
 @app.route('/', methods=['GET'])
 def get():
     return jsonify({
         "message": "OK"
         ,"data": get_all_votes()
     })
+
 
 @app.route('/', methods=['POST'])
 def post():
