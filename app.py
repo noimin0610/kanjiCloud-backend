@@ -32,6 +32,12 @@ def insert_vote(data):
                     "INSERT INTO votes (kanji, count, x, y) VALUES(%s, %s, %s, %s)"
                     ,(data["kanji"], 1, data["x"], data["y"])
                 )
+        
+        if data["prev_kanji"]:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE votes SET count = count - 1 WHERE kanji = %s", (data["prev_kanji"], )
+                )
 
         conn.commit()
 
@@ -39,7 +45,7 @@ def insert_vote(data):
 def get_all_votes():
     with psycopg2.connect(os.environ.get('DATABASE_URL')) as conn:
         with conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute("SELECT * FROM votes")
+            cur.execute("SELECT * FROM votes WHERE count > 0")
             votes = cur.fetchall()
             votes_list = []
             for vote in votes:
@@ -58,9 +64,17 @@ def get():
 def post():
     payload = request.json
     kanji = payload.get("kanji")
+    prev_kanji = payload.get("prevKanji")
+
+    # 乱数でを位置を決める    
+    x = random.randint(*X_RANGE)
+    y = random.randint(*Y_RANGE)
 
     data = {
         "kanji": kanji
+        ,"prev_kanji": prev_kanji
+        ,"x": x
+        ,"y": y
     }
     insert_vote(data)
 
