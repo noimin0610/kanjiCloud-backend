@@ -59,19 +59,8 @@ def post():
     payload = request.json
     kanji = payload.get("kanji")
 
-    # count を更新
-    count = 0
-    count += 1
-
-    # 乱数でを位置を決める    
-    x = random.randint(*X_RANGE)
-    y = random.randint(*Y_RANGE)
-
     data = {
         "kanji": kanji
-        ,"count": count
-        ,"x": x
-        ,"y": y
     }
     insert_vote(data)
 
