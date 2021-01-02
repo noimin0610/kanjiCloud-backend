@@ -57,7 +57,7 @@ def get_all_votes():
 def get_count():
     with psycopg2.connect(os.environ.get('DATABASE_URL')) as conn:
         with conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute("SELECT SUM(count) AS count FROM votes")
+            cur.execute("SELECT COALESCE(SUM(count), 0) AS count FROM votes")
             count = cur.fetchone()["count"]
     return jsonify({
         "message": "OK"
