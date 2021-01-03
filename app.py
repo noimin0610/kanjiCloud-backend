@@ -43,7 +43,7 @@ def insert_vote(data):
                         "UPDATE votes SET count = count - 1 WHERE kanji = %s", (data["prev_kanji"], )
                     )
             else:
-                rollback()
+                conn.rollback()
                 return
 
         conn.commit()
