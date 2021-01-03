@@ -16,8 +16,9 @@ X_RANGE = (-CANVAS_SIZE[0]/2 + PADDING, CANVAS_SIZE[0]/2 - PADDING)
 Y_RANGE = (-CANVAS_SIZE[1]/2 + PADDING, CANVAS_SIZE[1]/2 - PADDING)
 
 def insert_vote(data):
+    print(data, file=open("./tmp.log", "a"))
     with psycopg2.connect(os.environ.get('DATABASE_URL')) as conn:
-        if_exists = False
+        is_exists = False
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM votes WHERE kanji = %s", (data["kanji"],))
             is_exists = bool(cur.fetchall())
@@ -28,12 +29,16 @@ def insert_vote(data):
                     "UPDATE votes SET count = count + 1 WHERE kanji = %s", (data["kanji"], )
                 )
             else:
+                # 乱数でを位置を決める    
+                data["x"] = random.randint(*X_RANGE)
+                data["y"] = random.randint(*Y_RANGE)
                 cur.execute(
                     "INSERT INTO votes (kanji, count, x, y) VALUES(%s, %s, %s, %s)"
                     ,(data["kanji"], 1, data["x"], data["y"])
                 )
         
         if data["prev_kanji"]:
+            is_exists = False
             with conn.cursor() as cur:
                 cur.execute("SELECT * FROM votes WHERE kanji = %s AND count > 0", (data["prev_kanji"],))
                 is_exists = bool(cur.fetchall())
@@ -44,9 +49,10 @@ def insert_vote(data):
                     )
             else:
                 conn.rollback()
-                return
+                return False
 
         conn.commit()
+        return True
 
 
 def get_all_votes():
@@ -86,19 +92,14 @@ def post():
     kanji = payload.get("kanji")
     prev_kanji = payload.get("prevKanji")
 
-    # 乱数でを位置を決める    
-    x = random.randint(*X_RANGE)
-    y = random.randint(*Y_RANGE)
-
     data = {
         "kanji": kanji
         ,"prev_kanji": prev_kanji
-        ,"x": x
-        ,"y": y
     }
-    insert_vote(data)
-
-    app.logger.debug("INSERT\n", data)
+    if not insert_vote(data):
+        return jsonify({
+            "message": "invalid data"
+        }), 500
 
     return jsonify({
         "message": "OK"
