@@ -42,6 +42,9 @@ def insert_vote(data):
                     cur.execute(
                         "UPDATE votes SET count = count - 1 WHERE kanji = %s", (data["prev_kanji"], )
                     )
+            else:
+                conn.abort()
+                return
 
         conn.commit()
 
