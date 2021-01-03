@@ -19,7 +19,7 @@ def insert_vote(data):
     with psycopg2.connect(os.environ.get('DATABASE_URL')) as conn:
         if_exists = False
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM votes WHERE kanji = %s", (data["kanji"],))
+            cur.execute("SELECT * FROM votes WHERE kanji = %s AND count > 0", (data["kanji"],))
             is_exists = bool(cur.fetchall())
 
         with conn.cursor() as cur:
@@ -35,9 +35,13 @@ def insert_vote(data):
         
         if data["prev_kanji"]:
             with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE votes SET count = count - 1 WHERE kanji = %s", (data["prev_kanji"], )
-                )
+                cur.execute("SELECT * FROM votes WHERE kanji = %s AND count > 0", (data["prev_kanji"],))
+                is_exists = bool(cur.fetchall())
+            if is_exists:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "UPDATE votes SET count = count - 1 WHERE kanji = %s", (data["prev_kanji"], )
+                    )
 
         conn.commit()
 
