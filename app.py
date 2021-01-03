@@ -99,7 +99,7 @@ def post():
     if not insert_vote(data):
         return jsonify({
             "message": "invalid data"
-        }), 500
+        }), 400
 
     return jsonify({
         "message": "OK"
