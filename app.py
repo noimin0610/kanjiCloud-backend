@@ -65,6 +65,12 @@ def get_all_votes():
                 votes_list.append(dict(vote))
     return votes_list
 
+def delete_all_votes():
+    with psycopg2.connect(os.environ.get('DATABASE_URL')) as conn:
+        with conn.cursor(cursor_factory=DictCursor) as cur:
+            cur.execute("DELETE FROM votes")
+    return
+
 
 @app.route('/count', methods=['GET'])
 def get_count():
@@ -99,6 +105,26 @@ def post():
     if not insert_vote(data):
         return jsonify({
             "message": "invalid data"
+        }), 400
+
+    return jsonify({
+        "message": "OK"
+    })
+
+@app.route('/kanjis', methods=['POST'])
+def delete():
+    payload = request.json
+    if not payload:
+        return jsonify({
+            "message": "parameters are needed"
+        }), 400
+    is_delete = payload.get("delete")
+
+    if is_delete == 1:
+        delete_all_votes()
+    else:
+        return jsonify({
+            "message": "invalid parameter"
         }), 400
 
     return jsonify({
