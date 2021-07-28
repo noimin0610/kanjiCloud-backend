@@ -71,6 +71,26 @@ def delete_all_votes():
             cur.execute("DELETE FROM votes")
     return
 
+def get_all_texts():
+    with psycopg2.connect(os.environ.get('DATABASE_URL')) as conn:
+        with conn.cursor(cursor_factory=DictCursor) as cur:
+            cur.execute("SELECT * FROM fixed_texts")
+            texts = cur.fetchall()
+            texts_dict = dict()
+            for text in texts:
+                texts_dict[text["key"]] = text["fixed_text"]
+    return texts_dict
+
+def edit_texts(texts):
+    with psycopg2.connect(os.environ.get('DATABASE_URL')) as conn:
+        for key, text in texts.items():
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE fixed_texts SET fixed_text = %s WHERE key = %s", (text, key)
+                )
+        conn.commit()
+    return
+
 
 @app.route('/count', methods=['GET'])
 def get_count():
@@ -130,6 +150,24 @@ def delete():
     return jsonify({
         "message": "OK"
     })
+
+@app.route('/texts', methods=['GET'])
+def get_texts():
+    return jsonify({
+        "message": "OK"
+        ,"texts": get_all_texts()
+    })
+
+@app.route('/texts', methods=['POST'])
+def post_texts():
+    payload = request.json
+    edit_texts(payload)
+
+    return jsonify({
+        "message": "OK"
+        ,"texts": get_all_texts()
+    })
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
